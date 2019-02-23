@@ -1,0 +1,23 @@
+{
+  "name": "slack-github",
+  "version": "1.0.0",
+  "description": "test",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/trickpeeraze/slack-github.git"
+  },
+  "author": "Siraphob Rhompo <siraphob.r@linecorp.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/trickpeeraze/slack-github/issues"
+  },
+  "homepage": "https://github.com/trickpeeraze/slack-github#readme",
+  "dependencies": {
+    "fastify": "^1.14.1"
+  },
+  "devDependencies": {}
+}
