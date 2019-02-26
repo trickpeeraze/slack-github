@@ -44,6 +44,20 @@ fastify.post('/', async (request, reply) => {
   reply.code(204).send();
 });
 
+fastify.get('/authorize', async (request, reply) => {
+  const api = 'https://slack.com/oauth/authorize';
+  const client_id = '3469903797.556486638037';
+  const scope = 'chat:write:user';
+  const redirect_uri = '';
+  const state = 'grant';
+  // const team = '';
+
+  const url = `${api}?client_id=${client_id}&scope=${scope}&state=${state}&redirect_uri=${redirect_uri}`
+
+  reply.redirect(url)
+  return { hello: 'world' }
+});
+
 async function start() {
   fastify.log.info('Server starting..');
 
