@@ -1,18 +1,18 @@
 require('dotenv').config();
 require('make-promises-safe');
 
-const qs = require('querystring');
-const fastify = require('fastify')({
-  logger: true,
-});
-const axios = require('axios');
+const Fastify = require('fastify');
+const axios   = require('axios');
+const qs      = require('querystring');
 
-const CHANNEL             = '#test_github';
-const GITHUB_USER         = 'trickpeeraze';
-const SLACK_CLIENT_ID     = process.env.SLACK_CLIENT_ID;
-const SLACK_CLIENT_SECRET = process.env.SLACK_CLIENT_SECRET;
-const SLACK_SCOPE         = process.env.SLACK_SCOPE;
-const SLACK_REDIRECT_URI  = process.env.SLACK_REDIRECT_URI;
+const CHANNEL     = '#test_github';
+const GITHUB_USER = 'trickpeeraze';
+const { 
+  SLACK_CLIENT_ID,
+  SLACK_CLIENT_SECRET,
+  SLACK_SCOPE,
+  SLACK_REDIRECT_URI,
+} = process.env;
 
 const userGitMapWithSlack = {
   trickpeeraze: {
@@ -21,11 +21,15 @@ const userGitMapWithSlack = {
   },
 };
 
-fastify.get('/', (_, reply) => {
+const server = Fastify({
+  logger: true,
+});
+
+server.get('/', (_, reply) => {
   reply.send('Home page')
 });
 
-fastify.post('/', async (request, reply) => {
+server.post('/', async (request, reply) => {
   const slackUser = userGitMapWithSlack[GITHUB_USER];
 
   if (!slackUser) return;
@@ -43,27 +47,33 @@ fastify.post('/', async (request, reply) => {
       }
     });
 
-    fastify.log.info(res.data);
+    server.log.info(res.data);
   } catch(err) {
-    fastify.log.error(err);
+    server.log.error(err);
   }
 
-  fastify.log.info(request.body);
+  server.log.info(request.body);
 
   reply.code(204).send();
 });
 
-fastify.get('/authorize', (_, reply) => {
-  const api = 'https://slack.com/oauth/authorize';
+server.get('/authorize', (_, reply) => {
+  const api   = 'https://slack.com/oauth/authorize';
   const state = 'grant';
 
-  const url = `${api}?client_id=${SLACK_CLIENT_ID}&scope=${SLACK_SCOPE}&state=${state}&redirect_uri=${SLACK_REDIRECT_URI}`;
+  const params = qs.stringify({
+    state,
+    client_id:    SLACK_CLIENT_ID,
+    scope:        SLACK_SCOPE,
+    redirect_uri: SLACK_REDIRECT_URI,
+  });
+  const url = `${api}?${params}`;
 
   reply.redirect(url);
 });
 
-fastify.get('/authorized', async (req, reply) => {
-  fastify.log.info('TCL: req.params', req.query.code);
+server.get('/authorized', async (req, reply) => {
+  server.log.info('TCL: req.params', req.query.code);
 
   if (req.query.error) {
     reply.redirect('/');
@@ -81,9 +91,9 @@ fastify.get('/authorized', async (req, reply) => {
         redirect_uri:  SLACK_REDIRECT_URI,
       }));
 
-      fastify.log.info(res.data);
+      server.log.info(res.data);
     } catch (err) {
-      fastify.log.error(err);
+      server.log.error(err);
     } finally {
       reply.redirect('/');
     }
@@ -91,12 +101,12 @@ fastify.get('/authorized', async (req, reply) => {
 });
 
 async function start() {
-  fastify.log.info('Server starting..');
+  server.log.info('Server starting..');
 
   try {
-    await fastify.listen(3000);
+    await server.listen(3000);
   } catch (err) {
-    fastify.log.error(err);
+    server.log.error(err);
     process.exit(1);
   }
 }
