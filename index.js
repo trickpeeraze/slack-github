@@ -1,3 +1,4 @@
+require('dotenv').config();
 require('make-promises-safe');
 
 const qs = require('querystring');
@@ -6,12 +7,12 @@ const fastify = require('fastify')({
 });
 const axios = require('axios');
 
-const CHANNEL     = '#test_github';
-const GITHUB_USER = 'trickpeeraze';
-const client_id = '3469903797.556486638037';
-const client_secret = 'a68722491ae8d9dc26098d9eabb80db7';
-const scope = 'chat:write:user';
-const redirect_uri = 'https://c3618dd9.ngrok.io/authorized';
+const CHANNEL             = '#test_github';
+const GITHUB_USER         = 'trickpeeraze';
+const SLACK_CLIENT_ID     = process.env.SLACK_CLIENT_ID;
+const SLACK_CLIENT_SECRET = process.env.SLACK_CLIENT_SECRET;
+const SLACK_SCOPE         = process.env.SLACK_SCOPE;
+const SLACK_REDIRECT_URI  = process.env.SLACK_REDIRECT_URI;
 
 const userGitMapWithSlack = {
   trickpeeraze: {
@@ -55,9 +56,8 @@ fastify.post('/', async (request, reply) => {
 fastify.get('/authorize', (_, reply) => {
   const api = 'https://slack.com/oauth/authorize';
   const state = 'grant';
-  // const team = '';
 
-  const url = `${api}?client_id=${client_id}&scope=${scope}&state=${state}&redirect_uri=${redirect_uri}`;
+  const url = `${api}?client_id=${SLACK_CLIENT_ID}&scope=${SLACK_SCOPE}&state=${state}&redirect_uri=${SLACK_REDIRECT_URI}`;
 
   reply.redirect(url);
 });
@@ -75,10 +75,10 @@ fastify.get('/authorized', async (req, reply) => {
 
     try {
       const res = await axios.post(api, qs.stringify({
-        client_id,
-        client_secret,
         code,
-        redirect_uri,
+        client_id:     SLACK_CLIENT_ID,
+        client_secret: SLACK_CLIENT_SECRET,
+        redirect_uri:  SLACK_REDIRECT_URI,
       }));
 
       fastify.log.info(res.data);

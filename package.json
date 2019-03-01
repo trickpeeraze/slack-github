@@ -19,6 +19,7 @@
   "homepage": "https://github.com/trickpeeraze/slack-github#readme",
   "dependencies": {
     "axios": "^0.18.0",
+    "dotenv": "^6.2.0",
     "fastify": "^1.14.1",
     "make-promises-safe": "^4.0.0"
   },
