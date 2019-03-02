@@ -77,7 +77,7 @@ server.get('/authorized', async (req, reply) => {
   server.log.info('TCL: req.params', req.query.code);
 
   if (req.query.error) {
-    reply.redirect('/');
+    reply.send(req.query.error);
   }
 
   if (req.query.state === 'grant' && req.query.code) {
@@ -96,7 +96,7 @@ server.get('/authorized', async (req, reply) => {
     } catch (err) {
       server.log.error(err);
     } finally {
-      reply.redirect('/');
+      reply.send('authorized');
     }
   }
 });
