@@ -1,14 +1,17 @@
 require('dotenv').config();
 require('make-promises-safe');
 
-const Fastify  = require('fastify');
-const axios    = require('axios');
-const qs       = require('querystring');
-const Low      = require('lowdb')
-const FileAsync = require('lowdb/adapters/FileAsync')
+const Fastify      = require('fastify');
+const cookiePlugin = require('fastify-cookie');
+const axios        = require('axios');
+const qs           = require('querystring');
+const Low          = require('lowdb')
+const FileAsync    = require('lowdb/adapters/FileAsync')
 
 const CHANNEL     = '#test_github';
 const GITHUB_USER = 'trickpeeraze';
+const COOKIE_NAME = 'auth';
+
 const {
   PORT = 3000,
   SLACK_CLIENT_ID,
@@ -28,6 +31,8 @@ const server = Fastify({
   logger: true,
 });
 
+server.register(cookiePlugin);
+
 let db;
 
 async function getDB() {
@@ -38,8 +43,13 @@ async function getDB() {
   }));
 }
 
-server.get('/', (_, reply) => {
-  reply.send('Home page')
+server.get('/', (req, reply) => {
+  const token = req.cookies[COOKIE_NAME];
+
+  reply.send({
+    message: 'home page',
+    token,
+  });
 });
 
 server.post('/', async (request, reply) => {
@@ -70,7 +80,7 @@ server.post('/', async (request, reply) => {
   reply.code(204).send();
 });
 
-server.get('/authorize', (_, reply) => {
+server.get('/authorize', (req, reply) => {
   const api   = 'https://slack.com/oauth/authorize';
   const state = 'grant';
 
@@ -89,6 +99,8 @@ server.get('/authorized', async (req, reply) => {
   if (req.query.error) {
     reply.send(req.query.error);
   }
+
+  server.log.info(req.headers);
 
   if (req.query.state === 'grant' && req.query.code) {
     const api  = 'https://slack.com/api/oauth.access';
@@ -119,7 +131,9 @@ server.get('/authorized', async (req, reply) => {
             .push(db._.pick(data, pickFromResponse))
             .write();
         }
-        reply.send('authorized');
+        reply
+          .setCookie(COOKIE_NAME, data.access_token)
+          .send('authorized');
       } else {
         throw data;
       }
