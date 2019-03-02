@@ -1,9 +1,11 @@
 require('dotenv').config();
 require('make-promises-safe');
 
-const Fastify = require('fastify');
-const axios   = require('axios');
-const qs      = require('querystring');
+const Fastify  = require('fastify');
+const axios    = require('axios');
+const qs       = require('querystring');
+const Low      = require('lowdb')
+const FileAsync = require('lowdb/adapters/FileAsync')
 
 const CHANNEL     = '#test_github';
 const GITHUB_USER = 'trickpeeraze';
@@ -25,6 +27,16 @@ const userGitMapWithSlack = {
 const server = Fastify({
   logger: true,
 });
+
+let db;
+
+async function getDB() {
+  db = await Low(new FileAsync('db.json', {
+    defaultValue: {
+      users: []
+    },
+  }));
+}
 
 server.get('/', (_, reply) => {
   reply.send('Home page')
@@ -74,8 +86,6 @@ server.get('/authorize', (_, reply) => {
 });
 
 server.get('/authorized', async (req, reply) => {
-  server.log.info('TCL: req.params', req.query.code);
-
   if (req.query.error) {
     reply.send(req.query.error);
   }
@@ -83,20 +93,39 @@ server.get('/authorized', async (req, reply) => {
   if (req.query.state === 'grant' && req.query.code) {
     const api  = 'https://slack.com/api/oauth.access';
     const code = req.query.code;
+    const pickFromResponse = ['access_token', 'scope', 'user_id', 'team_name', 'team_id'];
 
     try {
-      const res = await axios.post(api, qs.stringify({
+      const { data } = await axios.post(api, qs.stringify({
         code,
         client_id:     SLACK_CLIENT_ID,
         client_secret: SLACK_CLIENT_SECRET,
         redirect_uri:  SLACK_REDIRECT_URI,
       }));
 
-      server.log.info(res.data);
+      server.log.info(data);
+
+      if (data.ok) {
+        // still not implement token rotation
+        // https://api.slack.com/docs/rotating-and-refreshing-credentials
+        const user = db
+          .get('users')
+          .find({ 'user_id': data.user_id })
+          .value();
+
+        if (!user) {
+          db
+            .get('users')
+            .push(db._.pick(data, pickFromResponse))
+            .write();
+        }
+        reply.send('authorized');
+      } else {
+        throw data;
+      }
     } catch (err) {
       server.log.error(err);
-    } finally {
-      reply.send('authorized');
+      reply.send('authorize failed');
     }
   }
 });
@@ -112,4 +141,5 @@ async function start() {
   }
 }
 
+getDB();
 start();
