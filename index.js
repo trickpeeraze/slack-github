@@ -7,7 +7,8 @@ const qs      = require('querystring');
 
 const CHANNEL     = '#test_github';
 const GITHUB_USER = 'trickpeeraze';
-const { 
+const {
+  PORT = 3000,
   SLACK_CLIENT_ID,
   SLACK_CLIENT_SECRET,
   SLACK_SCOPE,
@@ -104,7 +105,7 @@ async function start() {
   server.log.info('Server starting..');
 
   try {
-    await server.listen(3000);
+    await server.listen(PORT);
   } catch (err) {
     server.log.error(err);
     process.exit(1);
