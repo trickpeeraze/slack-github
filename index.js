@@ -58,7 +58,11 @@ server.get('/', async (req, reply) => {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    data.github_id = '';
+    data.user.github_id = db
+      .get('users')
+      .find({ 'user_id': data.user.id })
+      .get('github_id')
+      .value();
     
     reply
       .type('text/html')
@@ -138,7 +142,7 @@ server.get('/authorized', async (req, reply) => {
   if (req.query.state === 'grant' && req.query.code) {
     const api  = 'https://slack.com/api/oauth.access';
     const code = req.query.code;
-    const pickFromResponse = ['access_token', 'scope', 'user_id', 'team_name', 'team_id'];
+    const pickFromResponse = ['access_token', 'user_id', 'team_name', 'team_id'];
 
     try {
       const { data } = await axios.post(api, qs.stringify({
