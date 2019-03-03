@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index | pino-pretty",
-    "dev": "nodemon -e js,html index | pino-pretty",
+    "dev": "npx nodemon --ext js,html,jst index --ignore views/*.js | pino-pretty",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -23,6 +23,7 @@
     "dotenv": "^6.2.0",
     "fastify": "^1.14.1",
     "fastify-cookie": "^2.0.0",
+    "lodash": "^4.17.11",
     "lowdb": "^1.0.0",
     "make-promises-safe": "^4.0.0"
   },

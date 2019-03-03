@@ -4,13 +4,17 @@ require('make-promises-safe');
 const Fastify      = require('fastify');
 const cookiePlugin = require('fastify-cookie');
 const axios        = require('axios');
+const fs           = require('fs');
+const _            = require('lodash');
 const qs           = require('querystring');
-const Low          = require('lowdb')
-const FileAsync    = require('lowdb/adapters/FileAsync')
+const Low          = require('lowdb');
+const FileAsync    = require('lowdb/adapters/FileAsync');
 
 const CHANNEL     = '#test_github';
 const GITHUB_USER = 'trickpeeraze';
 const COOKIE_NAME = 'auth';
+
+_.templateSettings.interpolate = /\{\{([\s\S]+?)\}\}/g;
 
 const {
   PORT = 3000,
@@ -43,13 +47,28 @@ async function getDB() {
   }));
 }
 
-server.get('/', (req, reply) => {
+server.get('/', async (req, reply) => {
   const token = req.cookies[COOKIE_NAME];
 
-  reply.send({
-    message: 'home page',
-    token,
-  });
+  if (token) {
+    // TODO: this should be cache
+    const view = fs.readFileSync('./views/index.html');
+    const render = _.template(view);
+    const { data = {} } = await axios.get('https://slack.com/api/users.identity', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    data.github_id = '';
+    
+    reply
+      .type('text/html')
+      .send(render(data));
+  } else {
+    reply.send({
+      message: 'home page',
+      token,
+    });
+  }
 });
 
 server.post('/', async (request, reply) => {
@@ -87,7 +106,7 @@ server.get('/authorize', (req, reply) => {
   const params = qs.stringify({
     state,
     client_id:    SLACK_CLIENT_ID,
-    scope:        SLACK_SCOPE,
+    scope:        'identity.basic identity.avatar',
     redirect_uri: SLACK_REDIRECT_URI,
   });
   const url = `${api}?${params}`;
