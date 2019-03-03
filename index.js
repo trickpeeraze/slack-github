@@ -43,7 +43,6 @@ async function getDB() {
   db = await Low(new FileAsync('db.json', {
     defaultValue: {
       users: [],
-      slackGitMap: {},
     },
   }));
 }
@@ -71,8 +70,19 @@ server.get('/', async (req, reply) => {
     });
   }
 });
-server.post('/update-info', async (request, reply) => {
-  reply.send();
+
+server.post('/update-info', async (req, reply) => {
+  const { github_id, user_id } = req.body;
+
+  db
+    .get('users')
+    .find({ 'user_id': user_id })
+    .set('github_id', github_id)
+    .write();
+
+  reply.send({
+    ok: true
+  });
 });
 
 server.post('/sendMessage', async (request, reply) => {
