@@ -13,10 +13,29 @@
       <h3>{{ user.name }}</h3>
     </div>
     <div>
-      <form name="git-form" action="/map-git">
-        <input type="hidden" value="{{ user.id }}">
+      <form name="info-form" id="info_form" action="/update-info" method="POST" enctype="application/x-www-form-urlencoded">
+        <input id="user_id" type="hidden" value="{{ user.id }}">
         <input id="github_id" type="text" value="{{ github_id || '' }}" placeholder="fill your github id">
+        <input type="submit" value="Save">
       </form>
     </div>
+    <script>
+      document.getElementById('info_form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const form = e.target;
+				console.log('TCL: e.target', e.target.action);
+
+        fetch(form.action, {
+          method: form.method.toUpperCase(),
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            user_id: form.user_id.value,
+            github_id: form.github_id.value,
+          }),
+        });
+      })
+    </script>
   </body>
 </html>

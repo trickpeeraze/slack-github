@@ -42,7 +42,8 @@ let db;
 async function getDB() {
   db = await Low(new FileAsync('db.json', {
     defaultValue: {
-      users: []
+      users: [],
+      slackGitMap: {},
     },
   }));
 }
@@ -70,8 +71,11 @@ server.get('/', async (req, reply) => {
     });
   }
 });
+server.post('/update-info', async (request, reply) => {
+  reply.send();
+});
 
-server.post('/', async (request, reply) => {
+server.post('/sendMessage', async (request, reply) => {
   const slackUser = userGitMapWithSlack[GITHUB_USER];
 
   if (!slackUser) return;
