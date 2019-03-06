@@ -87,12 +87,15 @@ server.post('/channel/:channelId', async (req, reply) => {
   const payload   = req.body;
   const channelId = req.params.channelId;
 
-  if (_.isEmpty(payload.sender)) return;
+  if (_.isEmpty(payload.sender)) return new Error('Could not find the sender.');
 
   const github_id = payload.sender.login;
-  const slackUser = db.get({ github_id }).value();
+  const slackUser = db
+    .get('users')
+    .find({ github_id })
+    .value();
   
-  if (!slackUser) return;
+  if (!slackUser) return new Error('Could not find the slack\'s user.');
 
   try {
     const res = await axios.post('https://slack.com/api/chat.postMessage', {
@@ -102,19 +105,20 @@ server.post('/channel/:channelId', async (req, reply) => {
       mrkdwn: true,
     }, {
       headers: {
-        Authorization: `Bearer ${slackUser.access_token}`,
+        Authorization: `Bearer ${slackUser.token}`,
         'Content-Type': 'application/json',
       }
     });
 
     server.log.info(res.data);
+    reply.code(204);
+
+    return;
   } catch(err) {
     server.log.error(err);
+    
+    return err;
   }
-
-  server.log.info(req.body);
-
-  reply.code(204).send();
 });
 
 server.get('/authorize', (req, reply) => {
@@ -142,7 +146,7 @@ server.get('/authorized', async (req, reply) => {
   if (req.query.state === 'grant' && req.query.code) {
     const api  = 'https://slack.com/api/oauth.access';
     const code = req.query.code;
-    const pickFromResponse = ['access_token', 'user_id', 'team_name', 'team_id'];
+    const pickFromResponse = ['access_token', 'user', 'team_name', 'team_id'];
 
     try {
       const { data } = await axios.post(api, qs.stringify({
@@ -165,7 +169,11 @@ server.get('/authorized', async (req, reply) => {
         if (!user) {
           db
             .get('users')
-            .push(db._.pick(data, pickFromResponse))
+            .push({
+              user_id: data.user.id,
+              team_id: data.team.id,
+              token:   data.access_token,
+            })
             .write();
         }
         reply
