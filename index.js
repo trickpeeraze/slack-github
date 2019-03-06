@@ -107,12 +107,12 @@ server.post('/channel/:channelId', async (req, reply) => {
       }
     });
 
-    server.log.info(res.data);
+    req.log.info(res.data);
     reply.code(204);
 
     return;
   } catch(err) {
-    server.log.error(err);
+    req.log.error(err);
     
     return err;
   }
@@ -138,7 +138,7 @@ server.get('/authorized', async (req, reply) => {
     return req.query.error;
   }
 
-  server.log.info(req.headers);
+  req.log.info(req.headers);
 
   if (req.query.state === 'grant' && req.query.code) {
     const api  = 'https://slack.com/api/oauth.access';
@@ -152,7 +152,7 @@ server.get('/authorized', async (req, reply) => {
         redirect_uri:  BASE_URI + '/authorized',
       }));
 
-      server.log.info(data);
+      req.log.info(data);
 
       if (data.ok) {
         // still not implement token rotation
@@ -181,7 +181,7 @@ server.get('/authorized', async (req, reply) => {
         throw data;
       }
     } catch (err) {
-      server.log.error(err);
+      req.log.error(err);
 
       return 'authorize failed';
     }
