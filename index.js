@@ -54,18 +54,18 @@ server.get('/', async (req, reply) => {
       .get('github_id')
       .value();
     
-    reply
-      .type('text/html')
-      .send(render(data));
-  } else {
-    reply.send({
-      message: 'home page',
-      token,
-    });
+    reply.type('text/html');
+
+    return render(data);
   }
+
+  return {
+    message: 'home page',
+    token,
+  };
 });
 
-server.post('/update-info', async (req, reply) => {
+server.post('/update-info', async (req) => {
   const { github_id, user_id } = req.body;
 
   db
@@ -74,9 +74,9 @@ server.post('/update-info', async (req, reply) => {
     .set('github_id', github_id)
     .write();
 
-  reply.send({
+  return {
     ok: true
-  });
+  };
 });
 
 // TODO: this shoud add some nonce to the url for some security.
@@ -135,7 +135,7 @@ server.get('/authorize', (req, reply) => {
 
 server.get('/authorized', async (req, reply) => {
   if (req.query.error) {
-    reply.send(req.query.error);
+    return req.query.error;
   }
 
   server.log.info(req.headers);
@@ -163,29 +163,34 @@ server.get('/authorized', async (req, reply) => {
           .value();
 
         if (!user) {
+          const newUser = {
+            user_id: data.user.id,
+            team_id: data.team.id,
+            token:   data.access_token,
+          };
+
           db
             .get('users')
-            .push({
-              user_id: data.user.id,
-              team_id: data.team.id,
-              token:   data.access_token,
-            })
+            .push(newUser)
             .write();
         }
-        reply
-          .setCookie(COOKIE_NAME, data.access_token)
-          .send('authorized');
+        reply.setCookie(COOKIE_NAME, data.access_token);
+        
+        return 'authorized';
       } else {
         throw data;
       }
     } catch (err) {
       server.log.error(err);
-      reply.send('authorize failed');
+
+      return 'authorize failed';
     }
   }
 });
 
 async function start() {
+  getDB();
+  server.log.info('Loading database..');
   server.log.info('Server starting..');
 
   try {
@@ -196,5 +201,4 @@ async function start() {
   }
 }
 
-getDB();
 start();
