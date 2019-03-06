@@ -10,18 +10,15 @@ const qs           = require('querystring');
 const Low          = require('lowdb');
 const FileAsync    = require('lowdb/adapters/FileAsync');
 
-const CHANNEL     = '#test_github';
-const GITHUB_USER = 'trickpeeraze';
 const COOKIE_NAME = 'auth';
 
 _.templateSettings.interpolate = /\{\{([\s\S]+?)\}\}/g;
 
 const {
   PORT = 3000,
+  BASE_URI,
   SLACK_CLIENT_ID,
   SLACK_CLIENT_SECRET,
-  SLACK_SCOPE,
-  SLACK_REDIRECT_URI,
 } = process.env;
 
 const server = Fastify({
@@ -129,7 +126,7 @@ server.get('/authorize', (req, reply) => {
     state,
     client_id:    SLACK_CLIENT_ID,
     scope:        'identity.basic identity.avatar',
-    redirect_uri: SLACK_REDIRECT_URI,
+    redirect_uri: BASE_URI + '/authorized',
   });
   const url = `${api}?${params}`;
 
@@ -146,14 +143,13 @@ server.get('/authorized', async (req, reply) => {
   if (req.query.state === 'grant' && req.query.code) {
     const api  = 'https://slack.com/api/oauth.access';
     const code = req.query.code;
-    const pickFromResponse = ['access_token', 'user', 'team_name', 'team_id'];
 
     try {
       const { data } = await axios.post(api, qs.stringify({
         code,
         client_id:     SLACK_CLIENT_ID,
         client_secret: SLACK_CLIENT_SECRET,
-        redirect_uri:  SLACK_REDIRECT_URI,
+        redirect_uri:  BASE_URI + '/authorized',
       }));
 
       server.log.info(data);
