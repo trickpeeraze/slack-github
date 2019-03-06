@@ -24,13 +24,6 @@ const {
   SLACK_REDIRECT_URI,
 } = process.env;
 
-const userGitMapWithSlack = {
-  trickpeeraze: {
-    username: 'trickpeeraze',
-    token: '',
-  },
-};
-
 const server = Fastify({
   logger: true,
 });
@@ -89,20 +82,27 @@ server.post('/update-info', async (req, reply) => {
   });
 });
 
-server.post('/sendMessage', async (request, reply) => {
-  const slackUser = userGitMapWithSlack[GITHUB_USER];
+// TODO: this shoud add some nonce to the url for some security.
+server.post('/channel/:channelId', async (req, reply) => {
+  const payload   = req.body;
+  const channelId = req.params.channelId;
 
+  if (_.isEmpty(payload.sender)) return;
+
+  const github_id = payload.sender.login;
+  const slackUser = db.get({ github_id }).value();
+  
   if (!slackUser) return;
 
   try {
     const res = await axios.post('https://slack.com/api/chat.postMessage', {
-      channel: CHANNEL,
+      channel: channelId,
       text: 'do something',
       // blocks: [],
       mrkdwn: true,
     }, {
       headers: {
-        Authorization: `Bearer ${slackUser.token}`,
+        Authorization: `Bearer ${slackUser.access_token}`,
         'Content-Type': 'application/json',
       }
     });
@@ -112,7 +112,7 @@ server.post('/sendMessage', async (request, reply) => {
     server.log.error(err);
   }
 
-  server.log.info(request.body);
+  server.log.info(req.body);
 
   reply.code(204).send();
 });
