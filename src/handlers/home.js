@@ -1,5 +1,3 @@
-const _template = require("lodash/template");
-const fs = require("fs");
 const axios = require("axios");
 
 const COOKIE_NAME = "auth";
@@ -8,9 +6,6 @@ module.exports = async (req, reply) => {
   const token = req.cookies[COOKIE_NAME];
 
   if (token) {
-    // TODO: this should be cache
-    const view = fs.readFileSync("./views/index.html");
-    const render = _template(view);
     const { data = {} } = await axios.get(
       "https://slack.com/api/users.identity",
       {
@@ -18,19 +13,18 @@ module.exports = async (req, reply) => {
       }
     );
 
-    data.user.github_id = req.db
-      .get("users")
-      .find({ user_id: data.user.id })
-      .get("github_id")
-      .value();
+    if (data.user) {
+      const user = req.users.getById(data.user.id);
+      if (!user) {
+        // out of sync
+        reply.redirect("/authorize");
+      }
+      data.user.github_id = user.github_id;
+      reply.type("text/html");
 
-    reply.type("text/html");
-
-    return render(data);
+      reply.render("index", data);
+    }
   }
 
-  return {
-    message: "home page",
-    token
-  };
+  reply.redirect("/authorize");
 };

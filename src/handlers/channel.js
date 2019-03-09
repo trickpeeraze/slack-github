@@ -7,11 +7,7 @@ module.exports = async (req, reply) => {
 
   if (isEmpty(payload.sender)) return new Error("Could not find the sender.");
 
-  const github_id = payload.sender.login;
-  const slackUser = req.db
-    .get("users")
-    .find({ github_id })
-    .value();
+  const slackUser = req.users.getByGithubId(payload.sender.login);
 
   if (!slackUser) return new Error("Could not find the slack's user.");
 

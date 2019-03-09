@@ -50,10 +50,7 @@ exports.authorized = async (req, reply) => {
       if (data.ok) {
         // still not implement token rotation
         // https://api.slack.com/docs/rotating-and-refreshing-credentials
-        const user = req.db
-          .get("users")
-          .find({ user_id: data.user_id })
-          .value();
+        const user = req.users.getById(data.user.id);
 
         if (!user) {
           const newUser = {
@@ -62,21 +59,19 @@ exports.authorized = async (req, reply) => {
             token: data.access_token
           };
 
-          req.db
-            .get("users")
-            .push(newUser)
-            .write();
+          req.users.addUser(newUser);
         }
         reply.setCookie(AUTH_COOKIE_NAME, data.access_token);
 
-        return "authorized";
+        return { ok: true, message: "authorized" };
       } else {
         throw data;
       }
     } catch (err) {
       req.log.error(err);
+      reply.code(403);
 
-      return "authorize failed";
+      return { ok: false, message: "authorize failed" };
     }
   }
 };
