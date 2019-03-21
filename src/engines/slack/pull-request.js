@@ -3,7 +3,7 @@ const b = require('./components/block');
 const e = require('./components/element');
 
 function prTitle({ url, title }) {
-  return f.bold(f.link(url, title)).toUpperCase();
+  return f.bold(f.link(url, title));
 }
 
 function prLabels({ labels = [] }, { prefix = ':label: ', delimeter = '\t' }) {
@@ -72,7 +72,7 @@ function prParticipants(
 
 function prMain(pullRequest) {
   return [
-    prTitle(pullRequest),
+    prTitle(pullRequest).toUpperCase(),
     '\n',
     prLabels(pullRequest),
     '\n',
@@ -82,64 +82,78 @@ function prMain(pullRequest) {
   ].join('');
 }
 
-module.exports = (payload, users) => {
-  const actions = {
-    opened({ pull_request: pr }) {
-      const chat = "I've just opened a PR, check it out";
-      const image = e.image(
-        `${process.env.CDN_URL}/images/PR_Open.png`,
-        'Pull request open'
+const actions = {
+  opened({ pull_request: pr }) {
+    const chat = "I've just opened a PR, check it out";
+    const image = e.image(
+      `${process.env.CDN_URL}/images/PR_Open.png`,
+      'Pull request open'
+    );
+
+    return [
+      b.section(chat),
+      b.section(prMain(pr), image),
+      prMoreInfo(pr),
+      b.divider(),
+      prParticipants(pr, users),
+    ];
+  },
+  closed({ pull_request: pr, sender }, users) {
+    let image;
+
+    if (pr.merged) {
+      image = e.image(
+        `${process.env.CDN_URL}/images/PR_Merged.png`,
+        'Pull request merged'
       );
+    } else {
+      image = e.image(
+        `${process.env.CDN_URL}/images/PR_Close.png`,
+        'Pull request closed'
+      );
+    }
 
-      return [
-        b.section(chat),
-        b.section(prMain(pr), image),
-        prMoreInfo(pr),
-        b.divider(),
-        prParticipants(pr, users),
-      ];
-    },
-    closed({ pull_request: pr, sender }) {
-      let image;
+    let chat;
 
-      if (pr.merged) {
-        image = e.image(
-          `${process.env.CDN_URL}/images/PR_Merged.png`,
-          'Pull request merged'
-        );
-      } else {
-        image = e.image(
-          `${process.env.CDN_URL}/images/PR_Close.png`,
-          'Pull request closed'
-        );
-      }
-      let chat;
+    if (sender.login === pr.user.login) {
+      chat = "I've merged My PR";
+    } else {
+      const prOwner = users.getByGithubId(pr.user.login);
+      const user = prOwner ? f.mention(prOwner.user_id) : pr.user.login;
+      chat = `I've merged ${user}'s PR`;
+    }
 
-      if (sender.login === pr.user.login) {
-        chat = "I've merged My PR";
-      } else {
-        const prOwner = users.getByGithubId(pr.user.login);
-        const user = prOwner ? f.mention(prOwner.user_id) : prOwner.user_id;
-        chat = `I've merged ${user}'s PR`;
-      }
+    return [
+      b.section(chat),
+      b.section(prMain(pr), image),
+      prMoreInfo(pr),
+      b.divider(),
+      prParticipants(pr, users),
+    ];
+  },
+  reopened() {
+    return null;
+  },
+  assigned({ pull_request: pr }, users) {
+    const assignee = users.getByGithubId(pr.assignees.login);
 
-      return [
-        b.section(chat),
-        b.section(prMain(pr), image),
-        prMoreInfo(pr),
-        b.divider(),
-        prParticipants(pr, users),
-      ];
-    },
-    reopened() {},
-    assigned() {},
-    unassigned() {},
-    edited() {},
-    review_requested() {},
-    review_request_removed() {},
-    labeled() {},
-    unlabeled() {},
-  };
+    if (assignee) {
+      const user = f.mention(assignee.user_id);
+      return `${user}, I've assigned you to a pull request — ${prTitle(pr)}`;
+    } else {
+      return `I've assigned ${pr.assignees.login} to a pull request — ${prTitle(
+        pr
+      )}`;
+    }
+  },
+  unassigned() {},
+  edited() {},
+  review_requested() {},
+  review_request_removed() {},
+  labeled() {},
+  unlabeled() {},
+};
 
-  return actions[payload.action](payload);
+module.exports = (payload, users) => {
+  return actions[payload.action](payload, users);
 };
