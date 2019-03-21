@@ -23,20 +23,35 @@ function prBranch({ base, head }) {
   return `${baseBranch} ⟵ ${prBranch}`;
 }
 
-function prMoreInfo({ changed_files }) {
-  return b.context([e.text(`${changed_files} files changes`)]);
+function prMoreInfo({ changed_files, comments, created_at }) {
+  const changeText = `${changed_files || 'no'} files changes`;
+  const commentsText = `${comments || 0} comments`;
+
+  let dateText;
+
+  if (created_at) {
+    const date = new Date(created_at);
+    dateText = `<!date^${date.getTime()}^opened {date_short_pretty}|opened>`;
+  }
+
+  const text = [changeText, commentsText, dateText]
+    .filter(item => item)
+    .join(' · ');
+
+  return b.context([e.text(text)]);
 }
 
-function prParticipants({
-  assignees = [],
-  requested_reviewers = [],
-  requested_teams = [],
-}) {
+function prParticipants(
+  { assignees = [], requested_reviewers = [], requested_teams = [] },
+  users
+) {
   const elements = [];
 
   if (assignees.length) {
     elements.push(
-      ...assignees.map(assignee => e.image(assignee.avatar_url, assignee.login))
+      ...assignees.map(assignee =>
+        e.image(assignee.avatar_url, users.getByGithubId(assignee.login).name)
+      )
     );
     elements.push(e.text('was assigned and'));
   }
@@ -45,7 +60,9 @@ function prParticipants({
 
   if (reviewers.length) {
     elements.push(
-      ...reviewers.map(reviewer => e.image(reviewer.avatar_url, reviewer.login))
+      ...reviewers.map(reviewer =>
+        e.image(reviewer.avatar_url, users.getByGithubId(reviewer.login).name)
+      )
     );
     elements.push(e.text('were requested review'));
   }
@@ -65,24 +82,55 @@ function prMain(pullRequest) {
   ].join('');
 }
 
-exports.pull_request = payload => {
+module.exports = (payload, users) => {
   const actions = {
     opened({ pull_request: pr }) {
+      const chat = "I've just opened a PR, check it out";
+      const image = e.image(
+        `${process.env.CDN_URL}/images/PR_Open.png`,
+        'Pull request open'
+      );
+
       return [
-        b.section("I've just opened a PR, check it out"),
-        b.section(
-          prMain(pr),
-          e.image(
-            `${process.env.CDN_URL}/images/PR_Open.png`,
-            'Pull request open'
-          )
-        ),
+        b.section(chat),
+        b.section(prMain(pr), image),
         prMoreInfo(pr),
         b.divider(),
-        prParticipants(pr),
+        prParticipants(pr, users),
       ];
     },
-    closed() {},
+    closed({ pull_request: pr, sender }) {
+      let image;
+
+      if (pr.merged) {
+        image = e.image(
+          `${process.env.CDN_URL}/images/PR_Merged.png`,
+          'Pull request merged'
+        );
+      } else {
+        image = e.image(
+          `${process.env.CDN_URL}/images/PR_Close.png`,
+          'Pull request closed'
+        );
+      }
+      let chat;
+
+      if (sender.login === pr.user.login) {
+        chat = "I've merged My PR";
+      } else {
+        const prOwner = users.getByGithubId(pr.user.login);
+        const user = prOwner ? f.mention(prOwner.user_id) : prOwner.user_id;
+        chat = `I've merged ${user}'s PR`;
+      }
+
+      return [
+        b.section(chat),
+        b.section(prMain(pr), image),
+        prMoreInfo(pr),
+        b.divider(),
+        prParticipants(pr, users),
+      ];
+    },
     reopened() {},
     assigned() {},
     unassigned() {},
