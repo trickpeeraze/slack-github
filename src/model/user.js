@@ -1,40 +1,45 @@
 module.exports = class Users {
   constructor(db) {
-    this.collection = "users";
     this.db = db;
-  }
-
-  _get() {
-    return this.db.get(this.collection);
-  }
-
-  find(predicate) {
-    return this._get()
-      .find(predicate)
-      .value();
-  }
-
-  getAll() {
-    return this._get().value();
+    // this.db._.id = 'id';
+    this.collectionName = 'users';
+    this.collection = db.get(this.collectionName);
   }
 
   getById(id) {
-    return this.find({ user_id: id });
+    return this.collection.getById(id).value();
+  }
+  insert(document) {
+    return this.collection.insert(document).write();
+  }
+  upsert(document) {
+    return this.collection.upsert(document).write();
+  }
+  updateById(id, attrs) {
+    return this.collection.updateById(id, attrs).write();
+  }
+  updateWhere(whereAttrs, attrs) {
+    return this.collection.updateById(whereAttrs, attrs).write();
+  }
+  replaceById(id, attrs) {
+    return this.collection.replaceById(id, attrs).write();
+  }
+  removeById(id) {
+    return this.collection.removeById(id).write();
+  }
+  removeWhere(whereAttrs) {
+    return this.collection.removeWhere(whereAttrs).write();
+  }
+
+  find(predicate) {
+    return this.collection.find(predicate).value();
+  }
+
+  getAll() {
+    return this.collection.value();
   }
 
   getByGithubId(id) {
     return this.find({ github_id: id });
-  }
-
-  addUser(user) {
-    return this._get()
-      .push(user)
-      .write();
-  }
-
-  update(id, field, value) {
-    this.getById(id)
-      .set(field, value)
-      .write();
   }
 };
