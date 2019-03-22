@@ -59,7 +59,7 @@ exports.authorized = async (req, reply) => {
         });
         reply.setCookie(AUTH_COOKIE_NAME, data.access_token);
 
-        return { ok: true, message: 'authorized' };
+        reply.redirect('/');
       } else {
         throw data;
       }
