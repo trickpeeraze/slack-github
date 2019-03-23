@@ -12,11 +12,17 @@ module.exports = async (req, reply) => {
 
   if (!slackUser) return new Error("Could not find the slack's user.");
 
-  const event = req.headers['X-GitHub-Event'];
+  const event = req.headers['x-github-event'];
 
-  if (!slack[event]) return;
+  if (!slack[event])
+    return new Error(`Event "${event}" doesn't currently support.`);
 
   const blocks = slack[event](payload, req.users);
+
+  if (!blocks)
+    return new Error(
+      `Event action "${payload.action}" doesn't currently support.`
+    );
 
   try {
     const res = await axios.post(
@@ -41,6 +47,7 @@ module.exports = async (req, reply) => {
     return;
   } catch (err) {
     req.log.error(err);
+    reply.code(500);
 
     return err;
   }

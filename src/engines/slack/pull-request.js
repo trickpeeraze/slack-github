@@ -6,7 +6,10 @@ function prTitle({ url, title }) {
   return f.bold(f.link(url, title));
 }
 
-function prLabels({ labels = [] }, { prefix = ':label: ', delimeter = '\t' }) {
+function prLabels(
+  { labels = [] },
+  { prefix = ':git-tag: ', delimeter = '\t' } = {}
+) {
   return (
     '>' + labels.map(label => prefix + f.italic(label.name)).join(delimeter)
   );
@@ -31,14 +34,15 @@ function prMoreInfo({ changed_files, comments, created_at }) {
 
   if (created_at) {
     const date = new Date(created_at);
-    dateText = `<!date^${date.getTime()}^opened {date_short_pretty}|opened>`;
+    const unixTimestamp = Math.floor(date.getTime() / 1000);
+    dateText = `<!date^${unixTimestamp}^opened {date_short_pretty}|${date.toUTCString()}>`;
   }
 
   const text = [changeText, commentsText, dateText]
     .filter(item => item)
     .join(' · ');
 
-  return b.context([e.text(text)]);
+  return b.context([e.mrkdwn(text)]);
 }
 
 function prParticipants(
@@ -53,7 +57,7 @@ function prParticipants(
         e.image(assignee.avatar_url, users.getByGithubId(assignee.login).name)
       )
     );
-    elements.push(e.text('was assigned and'));
+    elements.push(e.text('was assigned'));
   }
 
   const reviewers = [...requested_reviewers, ...requested_teams];
@@ -83,11 +87,12 @@ function prMain(pullRequest) {
 }
 
 const actions = {
-  opened({ pull_request: pr }) {
+  opened({ pull_request: pr }, users) {
+    const host = process.env.CDN_UR || process.env.BASE_URI;
     const chat = "I've just opened a PR, check it out";
     const image = e.image(
-      `${process.env.CDN_URL}/images/PR_Open.png`,
-      'Pull request open'
+      `${host}/images/pr_opened.png`,
+      'Pull request opened'
     );
 
     return [
@@ -99,28 +104,22 @@ const actions = {
     ];
   },
   closed({ pull_request: pr, sender }, users) {
-    let image;
-
-    if (pr.merged) {
-      image = e.image(
-        `${process.env.CDN_URL}/images/PR_Merged.png`,
-        'Pull request merged'
-      );
-    } else {
-      image = e.image(
-        `${process.env.CDN_URL}/images/PR_Close.png`,
-        'Pull request closed'
-      );
-    }
+    const host = process.env.CDN_UR || process.env.BASE_URI;
+    const action = pr.merged ? 'merged' : 'closed';
+    const imageName = `pr_${action}.png`;
+    const image = e.image(
+      `${host}/images/${imageName}`,
+      'Pull request ${action}'
+    );
 
     let chat;
 
     if (sender.login === pr.user.login) {
-      chat = "I've merged My PR";
+      chat = `I've ${action} My PR`;
     } else {
       const prOwner = users.getByGithubId(pr.user.login);
       const user = prOwner ? f.mention(prOwner.user_id) : pr.user.login;
-      chat = `I've merged ${user}'s PR`;
+      chat = `I've ${action} ${user}'s PR`;
     }
 
     return [
