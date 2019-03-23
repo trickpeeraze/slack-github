@@ -178,11 +178,19 @@ const actions = {
   review_request_removed() {
     return null;
   },
-  labeled() {
-    return null;
+  labeled({ label, pull_request }) {
+    let chat = `I've added a :git-tag: ${f.italic(label.name)} to ${prTitle(
+      pull_request
+    )}`;
+
+    return [b.section(chat)];
   },
-  unlabeled() {
-    return null;
+  unlabeled({ label, pull_request }) {
+    let chat = `I've removed a :git-tag: ${f.italic(label.name)} to ${prTitle(
+      pull_request
+    )}`;
+
+    return [b.section(chat)];
   },
   synchronized() {
     return null;
