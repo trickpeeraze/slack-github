@@ -1,6 +1,6 @@
-const f = require('./components/format');
-const b = require('./components/block');
-const e = require('./components/element');
+const f = require('../components/format');
+const b = require('../components/block');
+const e = require('../components/element');
 
 function prTitle({ url, title }) {
   return f.bold(f.link(url, title));
