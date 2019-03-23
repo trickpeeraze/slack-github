@@ -23,7 +23,7 @@ function prBranch({ base, head }) {
   const baseBranch = f.code(base.ref);
   const prBranch = f.code(head.ref);
 
-  return `${baseBranch} ⟵ ${prBranch}`;
+  return `:git-branch: ${baseBranch} ⟵ ${prBranch}`;
 }
 
 function prMoreInfo({ changed_files, comments, created_at }) {
