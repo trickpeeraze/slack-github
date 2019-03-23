@@ -42,7 +42,7 @@ function prMoreInfo({ changed_files, comments, created_at }) {
     .filter(item => item)
     .join(' · ');
 
-  return b.context([e.mrkdwn(text)]);
+  return e.mrkdwn(text);
 }
 
 function prParticipants(
@@ -71,7 +71,7 @@ function prParticipants(
     elements.push(e.text('were requested review'));
   }
 
-  return b.context(elements);
+  return elements;
 }
 
 function prMain(pullRequest) {
@@ -98,9 +98,9 @@ const actions = {
     return [
       b.section(chat),
       b.section(prMain(pr), image),
-      prMoreInfo(pr),
+      b.context([prMoreInfo(pr)]),
       b.divider(),
-      prParticipants(pr, users),
+      b.context(prParticipants(pr, users)),
     ];
   },
   closed({ pull_request: pr, sender }, users) {
@@ -125,9 +125,9 @@ const actions = {
     return [
       b.section(chat),
       b.section(prMain(pr), image),
-      prMoreInfo(pr),
+      b.context([prMoreInfo(pr)]),
       b.divider(),
-      prParticipants(pr, users),
+      b.context(prParticipants(pr, users)),
     ];
   },
   reopened() {
