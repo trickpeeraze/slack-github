@@ -3,35 +3,19 @@ const axios = require('axios');
 const slack = require('../slack');
 
 module.exports = async (req, reply) => {
-  const payload = req.body;
+  throwifEventNotsupport(req);
+  throwifHasNoUser(req);
+
+  const blocks = getBlocks(req);
   const channel = req.params.channelId;
   const postMessageEndpoint = 'https://slack.com/api/chat.postMessage';
-
-  if (isEmpty(payload.sender)) return new Error('Could not find the sender.');
-
-  const slackUser = req.users.getByGithubId(payload.sender.login);
-
-  // TODO: support two mode "user" and "bot" in case that
-  //       users don't grant any permissions
-  if (!slackUser) return new Error("Could not find the slack's user.");
-
-  const event = req.headers['x-github-event'];
-
-  if (!slack[event])
-    return new Error(`Event "${event}" doesn't currently support.`);
-
-  const blocks = slack[event](payload, req.users);
-
-  if (!blocks)
-    return new Error(
-      `Event action "${payload.action}" doesn't currently support.`
-    );
+  const slackUser = req.users.getByGithubId(req.body.sender.login);
+  const headers = {
+    Authorization: `Bearer ${slackUser.token}`,
+    'Content-Type': 'application/json',
+  };
 
   try {
-    const headers = {
-      Authorization: `Bearer ${slackUser.token}`,
-      'Content-Type': 'application/json',
-    };
     const res = await axios.post(
       postMessageEndpoint,
       { blocks, channel },
@@ -49,3 +33,31 @@ module.exports = async (req, reply) => {
     return err;
   }
 };
+
+function throwifHasNoUser(req) {
+  if (isEmpty(req.body.sender)) throw new Error('Could not find the sender.');
+
+  // TODO: support two mode "user" and "bot" in case that
+  //       users don't grant any permissions
+  const slackUser = req.users.getByGithubId(req.body.sender.login);
+  if (!slackUser) throw new Error("Could not find the slack's user.");
+}
+
+function throwifEventNotsupport(req) {
+  const event = req.headers['x-github-event'];
+
+  if (!slack[event])
+    throw new Error(`Event "${event}" doesn't currently support.`);
+}
+
+function getBlocks(req) {
+  const event = req.headers['x-github-event'];
+  const blocks = slack[event](req.body, req.users);
+
+  if (!blocks)
+    throw new Error(
+      `Event action "${req.body.action}" doesn't currently support.`
+    );
+
+  return blocks;
+}
