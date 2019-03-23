@@ -163,6 +163,9 @@ const actions = {
   unlabeled() {
     return null;
   },
+  synchronized() {
+    return null;
+  },
 };
 
 module.exports = (payload, users) => {
