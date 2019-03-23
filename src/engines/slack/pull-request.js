@@ -89,14 +89,14 @@ function prMain(pullRequest) {
 const actions = {
   opened({ pull_request: pr }, users) {
     const host = process.env.CDN_UR || process.env.BASE_URI;
-    const chat = "I've just opened a PR, check it out";
+    const message = "I've just opened a PR, check it out";
     const image = e.image(
       `${host}/images/pr_opened.png`,
       'Pull request opened'
     );
 
     return [
-      b.section(chat),
+      b.section(message),
       b.section(prMain(pr), image),
       b.context([prMoreInfo(pr)]),
       b.divider(),
@@ -112,18 +112,18 @@ const actions = {
       'Pull request ${action}'
     );
 
-    let chat;
+    let message;
 
     if (sender.login === pr.user.login) {
-      chat = `I've ${action} My PR`;
+      message = `I've ${action} My PR`;
     } else {
       const prOwner = users.getByGithubId(pr.user.login);
       const user = prOwner ? f.mention(prOwner.user_id) : pr.user.login;
-      chat = `I've ${action} ${user}'s PR`;
+      message = `I've ${action} ${user}'s PR`;
     }
 
     return [
-      b.section(chat),
+      b.section(message),
       b.section(prMain(pr), image),
       b.context([prMoreInfo(pr)]),
       b.divider(),
@@ -134,40 +134,40 @@ const actions = {
     return null;
   },
   assigned({ assignee, pull_request, sender }, users) {
-    let chat;
+    let message;
 
     if (sender.login === assignee.login) {
-      chat = `I'll take this pull request`;
+      message = `I'll take this pull request`;
     } else {
       const assignee = users.getByGithubId(assignee.login);
 
       if (assignee) {
         const user = f.mention(assignee.user.id);
-        chat = `${user}, I've assigned you to the pull request`;
+        message = `${user}, I've assigned you to the pull request`;
       } else {
-        chat = `I've assigned ${assignee.login} to the pull request`;
+        message = `I've assigned ${assignee.login} to the pull request`;
       }
     }
 
-    return [b.section(`${chat} — ${prTitle(pull_request)}`)];
+    return [b.section(`${message} — ${prTitle(pull_request)}`)];
   },
   unassigned({ assignee, pull_request, sender }, users) {
-    let chat;
+    let message;
 
     if (sender.login === assignee.login) {
-      chat = `I'm out from the pull request`;
+      message = `I'm out from the pull request`;
     } else {
       const assignee = users.getByGithubId(assignee.login);
 
       if (assignee) {
         const user = f.mention(assignee.user.id);
-        chat = `${user}, I've unassigned you from the pull request`;
+        message = `${user}, I've unassigned you from the pull request`;
       } else {
-        chat = `I've unassigned ${assignee.login} from the pull request`;
+        message = `I've unassigned ${assignee.login} from the pull request`;
       }
     }
 
-    return [b.section(`${chat} — ${prTitle(pull_request)}`)];
+    return [b.section(`${message} — ${prTitle(pull_request)}`)];
   },
   edited() {
     return null;
@@ -179,18 +179,18 @@ const actions = {
     return null;
   },
   labeled({ label, pull_request }) {
-    let chat = `I've added a :git-tag: ${f.italic(label.name)} to ${prTitle(
+    let message = `I've added a :git-tag: ${f.italic(label.name)} to ${prTitle(
       pull_request
     )}`;
 
-    return [b.section(chat)];
+    return [b.section(message)];
   },
   unlabeled({ label, pull_request }) {
-    let chat = `I've removed a :git-tag: ${f.italic(label.name)} to ${prTitle(
-      pull_request
-    )}`;
+    let message = `I've removed a :git-tag: ${f.italic(
+      label.name
+    )} to ${prTitle(pull_request)}`;
 
-    return [b.section(chat)];
+    return [b.section(message)];
   },
   synchronized() {
     return null;
