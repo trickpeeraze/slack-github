@@ -145,12 +145,24 @@ const actions = {
       )}`;
     }
   },
-  unassigned() {},
-  edited() {},
-  review_requested() {},
-  review_request_removed() {},
-  labeled() {},
-  unlabeled() {},
+  unassigned() {
+    return null;
+  },
+  edited() {
+    return null;
+  },
+  review_requested() {
+    return null;
+  },
+  review_request_removed() {
+    return null;
+  },
+  labeled() {
+    return null;
+  },
+  unlabeled() {
+    return null;
+  },
 };
 
 module.exports = (payload, users) => {
