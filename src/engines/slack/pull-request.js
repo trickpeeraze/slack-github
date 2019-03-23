@@ -133,20 +133,41 @@ const actions = {
   reopened() {
     return null;
   },
-  assigned({ pull_request: pr }, users) {
-    const assignee = users.getByGithubId(pr.assignees.login);
+  assigned({ assignee, pull_request, sender }, users) {
+    let chat;
 
-    if (assignee) {
-      const user = f.mention(assignee.user_id);
-      return `${user}, I've assigned you to a pull request — ${prTitle(pr)}`;
+    if (sender.login === assignee.login) {
+      chat = `I'll take this pull request`;
     } else {
-      return `I've assigned ${pr.assignees.login} to a pull request — ${prTitle(
-        pr
-      )}`;
+      const assignee = users.getByGithubId(assignee.login);
+
+      if (assignee) {
+        const user = f.mention(assignee.user.id);
+        chat = `${user}, I've assigned you to the pull request`;
+      } else {
+        chat = `I've assigned ${assignee.login} to the pull request`;
+      }
     }
+
+    return [b.section(`${chat} — ${prTitle(pull_request)}`)];
   },
-  unassigned() {
-    return null;
+  unassigned({ assignee, pull_request, sender }, users) {
+    let chat;
+
+    if (sender.login === assignee.login) {
+      chat = `I'm out from the pull request`;
+    } else {
+      const assignee = users.getByGithubId(assignee.login);
+
+      if (assignee) {
+        const user = f.mention(assignee.user.id);
+        chat = `${user}, I've unassigned you from the pull request`;
+      } else {
+        chat = `I've unassigned ${assignee.login} from the pull request`;
+      }
+    }
+
+    return [b.section(`${chat} — ${prTitle(pull_request)}`)];
   },
   edited() {
     return null;
