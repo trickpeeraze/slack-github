@@ -4,12 +4,15 @@ const slack = require('../slack');
 
 module.exports = async (req, reply) => {
   const payload = req.body;
-  const channelId = req.params.channelId;
+  const channel = req.params.channelId;
+  const postMessageEndpoint = 'https://slack.com/api/chat.postMessage';
 
   if (isEmpty(payload.sender)) return new Error('Could not find the sender.');
 
   const slackUser = req.users.getByGithubId(payload.sender.login);
 
+  // TODO: support two mode "user" and "bot" in case that
+  //       users don't grant any permissions
   if (!slackUser) return new Error("Could not find the slack's user.");
 
   const event = req.headers['x-github-event'];
@@ -25,20 +28,14 @@ module.exports = async (req, reply) => {
     );
 
   try {
+    const headers = {
+      Authorization: `Bearer ${slackUser.token}`,
+      'Content-Type': 'application/json',
+    };
     const res = await axios.post(
-      'https://slack.com/api/chat.postMessage',
-      {
-        channel: channelId,
-        text: 'do something',
-        blocks,
-        mrkdwn: true,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${slackUser.token}`,
-          'Content-Type': 'application/json',
-        },
-      }
+      postMessageEndpoint,
+      { blocks, channel },
+      { headers }
     );
 
     req.log.info(res.data);
