@@ -1,6 +1,6 @@
 const isEmpty = require('lodash/isEmpty');
 const axios = require('axios');
-const slack = require('../engines/slack');
+const slack = require('../slack');
 
 module.exports = async (req, reply) => {
   const payload = req.body;
