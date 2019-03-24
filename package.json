@@ -4,7 +4,7 @@
   "description": "test",
   "main": "index.js",
   "scripts": {
-    "start": "node index | pino-pretty",
+    "start": "node index",
     "dev": "npx nodemon --ext js,html,jst index --ignore views/*.js | pino-pretty",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
