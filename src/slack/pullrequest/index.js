@@ -89,8 +89,8 @@ function prMain(pullRequest) {
 function getLegacyPRObject(pr) {
   return {
     color: '#161515',
-    author_name: pr.repo.name,
-    author_link: pr.repo.html_url,
+    author_name: pr.head.repo.name,
+    author_link: pr.head.repo.html_url,
     author_icon: '',
     title: `${pr.title}(${pr.number})`,
     title_link: pr.html_url,
