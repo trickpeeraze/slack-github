@@ -164,13 +164,13 @@ const actions = {
 
     if (pr.merged) {
       return getLegacyPRPayload(
-        'PR Opened',
+        'PR Merged',
         'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_merged.png?alt=media',
         pr
       );
     }
     return getLegacyPRPayload(
-      'PR Opened',
+      'PR Closed',
       'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_closed.png?alt=media',
       pr
     );
