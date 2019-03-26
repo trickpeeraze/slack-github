@@ -12,7 +12,6 @@ module.exports = async (req, reply) => {
   const channel = req.params.channelId;
   const ikameshiEndpoint = `http://ikameshi.linecorp.com/webhook/${channel}`;
   const headers = {
-    'X-SENDER': 'PR_Bot',
     'Content-Type': 'application/json',
   };
 
