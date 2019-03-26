@@ -1,5 +1,5 @@
 const axios = require('axios');
-const slack = require('../slack/beta');
+const slack = require('../../slack');
 
 module.exports = async (req, reply) => {
   throwifEventNotsupport(req);
