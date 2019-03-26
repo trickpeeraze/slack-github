@@ -86,6 +86,30 @@ function prMain(pullRequest) {
   ].join('');
 }
 
+function getLegacyPRObject(pr) {
+  return {
+    color: '#161515',
+    author_name: pr.repo.name,
+    author_link: pr.repo.html_url,
+    author_icon: '',
+    title: `${pr.title}(${pr.number})`,
+    title_link: pr.html_url,
+    text: prBranch(pr),
+    footer: [pr.user.login, prMoreInfo(pr)].join(' ・ '),
+    footer_icon: pr.user.avatar_url,
+    thumb_url:
+      'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png',
+  };
+}
+
+function getLegacyPRPayload(name, image, pr) {
+  return {
+    username: name,
+    icon_url: image,
+    attachments: [getLegacyPRObject(pr)],
+  };
+}
+
 const actions = {
   opened({ pull_request: pr }, { users, mode }) {
     const host = process.env.CDN_UR || process.env.BASE_URI;
@@ -104,26 +128,11 @@ const actions = {
       ];
     }
 
-    return {
-      username: 'PR Opened',
-      icon_url:
-        'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_opened.png?alt=media',
-      attachments: [
-        {
-          color: '#161515',
-          author_name: pr.repo.name,
-          author_link: pr.repo.html_url,
-          author_icon: '',
-          title: `${pr.title}(${pr.number})`,
-          title_link: pr.html_url,
-          text: prBranch(pr),
-          footer: [pr.user.login, prMoreInfo(pr)].join(' ・ '),
-          footer_icon: pr.user.avatar_url,
-          thumb_url:
-            'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png',
-        },
-      ],
-    };
+    return getLegacyPRPayload(
+      'PR Opened',
+      'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_opened.png?alt=media',
+      pr
+    );
   },
   closed({ pull_request: pr, sender }, { users, mode }) {
     const host = process.env.CDN_UR || process.env.BASE_URI;
@@ -152,6 +161,19 @@ const actions = {
         b.context(prParticipants(pr, users)),
       ];
     }
+
+    if (pr.merged) {
+      return getLegacyPRPayload(
+        'PR Opened',
+        'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_merged.png?alt=media',
+        pr
+      );
+    }
+    return getLegacyPRPayload(
+      'PR Opened',
+      'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_closed.png?alt=media',
+      pr
+    );
   },
   reopened() {
     return null;
