@@ -16,7 +16,7 @@ function prLabels(
 }
 
 function prInformation({ number, head }) {
-  return `#${number} · <${head.repo.html_url}|${head.repo.full_name}>`;
+  return `#${number} ・ <${head.repo.html_url}|${head.repo.full_name}>`;
 }
 
 function prBranch({ base, head }) {
@@ -40,7 +40,7 @@ function prMoreInfo({ changed_files, comments, created_at }) {
 
   const text = [changeText, commentsText, dateText]
     .filter(item => item)
-    .join(' · ');
+    .join(' ・ ');
 
   return text;
 }
