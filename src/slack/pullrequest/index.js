@@ -92,7 +92,7 @@ function getLegacyPRObject(pr) {
     author_name: pr.head.repo.name,
     author_link: pr.head.repo.html_url,
     author_icon: '',
-    title: `${pr.title}(${pr.number})`,
+    title: `${pr.title} (#${pr.number})`,
     title_link: pr.html_url,
     text: prBranch(pr),
     footer: [pr.user.login, prMoreInfo(pr)].join(' ・ '),
