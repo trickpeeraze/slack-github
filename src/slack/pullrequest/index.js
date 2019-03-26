@@ -135,24 +135,25 @@ const actions = {
     );
   },
   closed({ pull_request: pr, sender }, { users, mode }) {
-    const host = process.env.CDN_UR || process.env.BASE_URI;
-    const action = pr.merged ? 'merged' : 'closed';
-    const imageName = `pr_${action}.png`;
-    const image = e.image(
-      `${host}/images/${imageName}`,
-      'Pull request ${action}'
-    );
-
-    let message;
-
-    if (sender.login === pr.user.login) {
-      message = `I've ${action} My PR`;
-    } else {
-      const prOwner = users.getByGithubId(pr.user.login);
-      const user = prOwner ? f.mention(prOwner.user_id) : pr.user.login;
-      message = `I've ${action} ${user}'s PR`;
-    }
     if (mode !== 'legacy') {
+      const host = process.env.CDN_UR || process.env.BASE_URI;
+      const action = pr.merged ? 'merged' : 'closed';
+      const imageName = `pr_${action}.png`;
+      const image = e.image(
+        `${host}/images/${imageName}`,
+        'Pull request ${action}'
+      );
+
+      let message;
+
+      if (sender.login === pr.user.login) {
+        message = `I've ${action} My PR`;
+      } else {
+        const prOwner = users.getByGithubId(pr.user.login);
+        const user = prOwner ? f.mention(prOwner.user_id) : pr.user.login;
+        message = `I've ${action} ${user}'s PR`;
+      }
+
       return [
         b.section(message),
         b.section(prMain(pr), image),
@@ -179,41 +180,41 @@ const actions = {
     return null;
   },
   assigned({ assignee, pull_request, sender }, { users, mode }) {
-    let message;
-
-    if (sender.login === assignee.login) {
-      message = `I'll take this pull request`;
-    } else {
-      const assignee = users.getByGithubId(assignee.login);
-
-      if (assignee) {
-        const user = f.mention(assignee.user.id);
-        message = `${user}, I've assigned you to the pull request`;
-      } else {
-        message = `I've assigned ${assignee.login} to the pull request`;
-      }
-    }
     if (mode !== 'legacy') {
+      let message;
+
+      if (sender.login === assignee.login) {
+        message = `I'll take this pull request`;
+      } else {
+        const assignee = users.getByGithubId(assignee.login);
+
+        if (assignee) {
+          const user = f.mention(assignee.user.id);
+          message = `${user}, I've assigned you to the pull request`;
+        } else {
+          message = `I've assigned ${assignee.login} to the pull request`;
+        }
+      }
       return [b.section(`${message} — ${prTitle(pull_request)}`)];
     }
     return null;
   },
   unassigned({ assignee, pull_request, sender }, { users, mode }) {
-    let message;
-
-    if (sender.login === assignee.login) {
-      message = `I'm out from the pull request`;
-    } else {
-      const assignee = users.getByGithubId(assignee.login);
-
-      if (assignee) {
-        const user = f.mention(assignee.user.id);
-        message = `${user}, I've unassigned you from the pull request`;
-      } else {
-        message = `I've unassigned ${assignee.login} from the pull request`;
-      }
-    }
     if (mode !== 'legacy') {
+      let message;
+
+      if (sender.login === assignee.login) {
+        message = `I'm out from the pull request`;
+      } else {
+        const assignee = users.getByGithubId(assignee.login);
+
+        if (assignee) {
+          const user = f.mention(assignee.user.id);
+          message = `${user}, I've unassigned you from the pull request`;
+        } else {
+          message = `I've unassigned ${assignee.login} from the pull request`;
+        }
+      }
       return [b.section(`${message} — ${prTitle(pull_request)}`)];
     }
     return null;
@@ -228,19 +229,19 @@ const actions = {
     return null;
   },
   labeled({ label, pull_request }, { mode }) {
-    let message = `I've added a :git-tag: ${f.italic(label.name)} to ${prTitle(
-      pull_request
-    )}`;
     if (mode !== 'legacy') {
+      let message = `I've added a :git-tag: ${f.italic(
+        label.name
+      )} to ${prTitle(pull_request)}`;
       return [b.section(message)];
     }
     return null;
   },
   unlabeled({ label, pull_request }, { mode }) {
-    let message = `I've removed a :git-tag: ${f.italic(
-      label.name
-    )} to ${prTitle(pull_request)}`;
     if (mode !== 'legacy') {
+      let message = `I've removed a :git-tag: ${f.italic(
+        label.name
+      )} to ${prTitle(pull_request)}`;
       return [b.section(message)];
     }
     return null;
