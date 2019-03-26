@@ -36,7 +36,7 @@ function throwifEventNotsupport(req) {
 
 function getPayload(req) {
   const event = req.headers['x-github-event'];
-  const payload = slack[event](req.body, { mode: 'legacy' });
+  const payload = slack[event](req.body, { mode: process.env.SLACK_MODE });
 
   if (!payload)
     throw new Error(
