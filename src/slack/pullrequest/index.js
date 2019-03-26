@@ -96,7 +96,10 @@ function getLegacyPRObject(pr) {
     title_link: pr.html_url,
     text: prBranch(pr),
     footer: [pr.user.login, prMoreInfo(pr)].join(' ・ '),
-    footer_icon: pr.user.avatar_url,
+    // can not use real github profile image due to network restriction
+    // so, I will use "adorable.io" for now
+    // footer_icon: pr.user.avatar_url,
+    footer_icon: `https://api.adorable.io/avatars/16/${pr.user.login}.png`,
     thumb_url:
       'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png',
   };
