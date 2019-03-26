@@ -52,7 +52,7 @@ function throwifEventNotsupport(req) {
 
 function getBlocks(req) {
   const event = req.headers['x-github-event'];
-  const blocks = slack[event](req.body, req.users);
+  const blocks = slack[event](req.body, { users: req.users });
 
   if (!blocks)
     throw new Error(

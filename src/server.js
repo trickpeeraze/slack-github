@@ -1,5 +1,5 @@
 const cookiePlugin = require('fastify-cookie');
-const routes = require('./routes');
+const routes = require('./routesBeta');
 const database = require('./core/db');
 const start = require('./core/start');
 const template = require('./core/template');

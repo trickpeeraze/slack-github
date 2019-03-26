@@ -42,7 +42,7 @@ function prMoreInfo({ changed_files, comments, created_at }) {
     .filter(item => item)
     .join(' · ');
 
-  return e.mrkdwn(text);
+  return text;
 }
 
 function prParticipants(
@@ -87,23 +87,45 @@ function prMain(pullRequest) {
 }
 
 const actions = {
-  opened({ pull_request: pr }, users) {
+  opened({ pull_request: pr }, { users, mode }) {
     const host = process.env.CDN_UR || process.env.BASE_URI;
     const message = "I've just opened a PR, check it out";
     const image = e.image(
       `${host}/images/pr_opened.png`,
       'Pull request opened'
     );
+    if (mode !== 'legacy') {
+      return [
+        b.section(message),
+        b.section(prMain(pr), image),
+        b.context([e.mrkdwn(prMoreInfo(pr))]),
+        b.divider(),
+        b.context(prParticipants(pr, users)),
+      ];
+    }
 
-    return [
-      b.section(message),
-      b.section(prMain(pr), image),
-      b.context([prMoreInfo(pr)]),
-      b.divider(),
-      b.context(prParticipants(pr, users)),
-    ];
+    return {
+      username: 'PR Opened',
+      icon_url:
+        'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_opened.png?alt=media',
+      attachments: [
+        {
+          color: '#161515',
+          author_name: pr.repo.name,
+          author_link: pr.repo.html_url,
+          author_icon: '',
+          title: `${pr.title}(${pr.number})`,
+          title_link: pr.html_url,
+          text: prBranch(pr),
+          footer: [pr.user.login, prMoreInfo(pr)].join(' ・ '),
+          footer_icon: pr.user.avatar_url,
+          thumb_url:
+            'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png',
+        },
+      ],
+    };
   },
-  closed({ pull_request: pr, sender }, users) {
+  closed({ pull_request: pr, sender }, { users, mode }) {
     const host = process.env.CDN_UR || process.env.BASE_URI;
     const action = pr.merged ? 'merged' : 'closed';
     const imageName = `pr_${action}.png`;
@@ -121,19 +143,20 @@ const actions = {
       const user = prOwner ? f.mention(prOwner.user_id) : pr.user.login;
       message = `I've ${action} ${user}'s PR`;
     }
-
-    return [
-      b.section(message),
-      b.section(prMain(pr), image),
-      b.context([prMoreInfo(pr)]),
-      b.divider(),
-      b.context(prParticipants(pr, users)),
-    ];
+    if (mode !== 'legacy') {
+      return [
+        b.section(message),
+        b.section(prMain(pr), image),
+        b.context([e.mrkdwn(prMoreInfo(pr))]),
+        b.divider(),
+        b.context(prParticipants(pr, users)),
+      ];
+    }
   },
   reopened() {
     return null;
   },
-  assigned({ assignee, pull_request, sender }, users) {
+  assigned({ assignee, pull_request, sender }, { users, mode }) {
     let message;
 
     if (sender.login === assignee.login) {
@@ -148,10 +171,12 @@ const actions = {
         message = `I've assigned ${assignee.login} to the pull request`;
       }
     }
-
-    return [b.section(`${message} — ${prTitle(pull_request)}`)];
+    if (mode !== 'legacy') {
+      return [b.section(`${message} — ${prTitle(pull_request)}`)];
+    }
+    return null;
   },
-  unassigned({ assignee, pull_request, sender }, users) {
+  unassigned({ assignee, pull_request, sender }, { users, mode }) {
     let message;
 
     if (sender.login === assignee.login) {
@@ -166,8 +191,10 @@ const actions = {
         message = `I've unassigned ${assignee.login} from the pull request`;
       }
     }
-
-    return [b.section(`${message} — ${prTitle(pull_request)}`)];
+    if (mode !== 'legacy') {
+      return [b.section(`${message} — ${prTitle(pull_request)}`)];
+    }
+    return null;
   },
   edited() {
     return null;
@@ -178,25 +205,29 @@ const actions = {
   review_request_removed() {
     return null;
   },
-  labeled({ label, pull_request }) {
+  labeled({ label, pull_request }, { mode }) {
     let message = `I've added a :git-tag: ${f.italic(label.name)} to ${prTitle(
       pull_request
     )}`;
-
-    return [b.section(message)];
+    if (mode !== 'legacy') {
+      return [b.section(message)];
+    }
+    return null;
   },
-  unlabeled({ label, pull_request }) {
+  unlabeled({ label, pull_request }, { mode }) {
     let message = `I've removed a :git-tag: ${f.italic(
       label.name
     )} to ${prTitle(pull_request)}`;
-
-    return [b.section(message)];
+    if (mode !== 'legacy') {
+      return [b.section(message)];
+    }
+    return null;
   },
   synchronized() {
     return null;
   },
 };
 
-module.exports = (payload, users) => {
-  return actions[payload.action](payload, users);
+module.exports = (payload, options) => {
+  return actions[payload.action](payload, options);
 };
