@@ -2,6 +2,10 @@ const axios = require('axios');
 const slack = require('../../slack');
 
 module.exports = async (req, reply) => {
+  if (isPing(req)) {
+    reply.code(204);
+    return;
+  }
   throwifEventNotsupport(req);
 
   const payload = getPayload(req);
@@ -26,6 +30,10 @@ module.exports = async (req, reply) => {
     return err;
   }
 };
+
+function isPing(req) {
+  return req.headers['x-github-event'] === 'ping';
+}
 
 function throwifEventNotsupport(req) {
   const event = req.headers['x-github-event'];
