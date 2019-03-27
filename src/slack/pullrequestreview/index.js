@@ -1,12 +1,32 @@
 const actions = {
   submitted({ review, pull_request: pr }) {
+    const getImageUrl = name =>
+      `https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2F${name}.png?alt=media`;
+    const state = {
+      commented: {
+        name: 'Comment',
+        image: getImageUrl('dismiss'),
+        color: '#969A9D',
+      },
+      approved: {
+        name: 'Approval',
+        image: getImageUrl('approve'),
+        color: '#2CBE4E',
+      },
+      request_changes: {
+        name: 'Request Changes',
+        image: getImageUrl('reject'),
+        color: '#CB2331',
+      },
+    };
+    const stateObj = state[review.state.toLowerCase()];
+
     return {
-      username: `PR ${review.state}`,
-      icon_url:
-        'https://pngimage.net/wp-content/uploads/2018/05/approval-icon-png-3.png',
+      username: `PR ${stateObj.name}`,
+      icon_url: stateObj.image,
       attachments: [
         {
-          color: '#2DB192',
+          color: stateObj.color,
           title: `${pr.title} (#${pr.number})`,
           title_link: pr.html_url,
           footer: `${review.user.login} ${review.state}`,
