@@ -1,6 +1,7 @@
 const f = require('../components/format');
 const b = require('../components/block');
 const e = require('../components/element');
+const { omit } = require('lodash');
 
 function prTitle({ url, title }) {
   return f.bold(f.link(url, title));
@@ -103,12 +104,15 @@ function getLegacyPRObject(pr) {
   };
 }
 
-function getLegacyPRPayload(name, image, pr, attachments) {
-  attachments = attachments || [getLegacyPRObject(pr)];
+function getLegacyPRObjectCompact(pr) {
   return {
-    username: name,
-    icon_url: image,
-    attachments,
+    color: '#161515',
+    title: `${pr.title} (#${pr.number})`,
+    title_link: pr.html_url,
+    text: prBranch(pr),
+    footer: [pr.user.login, pr.head.repo.name].join('・'),
+    footer_icon: `https://api.adorable.io/avatars/16/${pr.user.login}.png`,
+    fallback: 'PR',
   };
 }
 
@@ -130,11 +134,12 @@ const actions = {
       ];
     }
 
-    return getLegacyPRPayload(
-      'PR Opened',
-      'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_opened.png?alt=media',
-      pr
-    );
+    return {
+      username: 'PR Opened',
+      icon_url:
+        'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_opened.png?alt=media',
+      attachments: [getLegacyPRObjectCompact(pr)],
+    };
   },
   closed({ pull_request: pr, sender }, { users, mode }) {
     if (mode !== 'legacy') {
@@ -165,18 +170,23 @@ const actions = {
       ];
     }
 
+    const attachments = [omit(getLegacyPRObjectCompact(pr), ['text'])];
+
     if (pr.merged) {
-      return getLegacyPRPayload(
-        'PR Merged',
-        'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_merged.png?alt=media',
-        pr
-      );
+      return {
+        username: 'PR Merged',
+        icon_url:
+          'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_merged.png?alt=media',
+        attachments,
+      };
     }
-    return getLegacyPRPayload(
-      'PR Closed',
-      'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_closed.png?alt=media',
-      pr
-    );
+
+    return {
+      username: 'PR Closed',
+      icon_url:
+        'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_closed.png?alt=media',
+      attachments,
+    };
   },
   reopened() {
     return null;
