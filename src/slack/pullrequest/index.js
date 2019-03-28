@@ -100,16 +100,15 @@ function getLegacyPRObject(pr) {
     // so, I will use "adorable.io" for now
     // footer_icon: pr.user.avatar_url,
     footer_icon: `https://api.adorable.io/avatars/16/${pr.user.login}.png`,
-    thumb_url:
-      'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png',
   };
 }
 
-function getLegacyPRPayload(name, image, pr) {
+function getLegacyPRPayload(name, image, pr, attachments) {
+  attachments = attachments || [getLegacyPRObject(pr)];
   return {
     username: name,
     icon_url: image,
-    attachments: [getLegacyPRObject(pr)],
+    attachments,
   };
 }
 

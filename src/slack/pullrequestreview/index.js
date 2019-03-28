@@ -13,7 +13,7 @@ const actions = {
         image: getImageUrl('approve'),
         color: '#2CBE4E',
       },
-      request_changes: {
+      changes_requested: {
         name: 'Request Changes',
         image: getImageUrl('reject'),
         color: '#CB2331',
