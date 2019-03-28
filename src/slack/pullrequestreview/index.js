@@ -3,11 +3,8 @@ const actions = {
     const getImageUrl = name =>
       `https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2F${name}.png?alt=media`;
     const state = {
-      commented: {
-        name: 'Comment',
-        image: getImageUrl('dismiss'),
-        color: '#969A9D',
-      },
+      // we will ignore comment state and go to check on `pull_request_review_comment` instead
+      // commented: {},
       approved: {
         name: 'Approval',
         image: getImageUrl('approve'),
@@ -20,6 +17,8 @@ const actions = {
       },
     };
     const stateObj = state[review.state.toLowerCase()];
+
+    if (!stateObj) return null;
 
     return {
       username: `PR ${stateObj.name}`,
