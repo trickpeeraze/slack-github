@@ -29,7 +29,7 @@ const actions = {
           color: stateObj.color,
           title: `${pr.title} (#${pr.number})`,
           title_link: pr.html_url,
-          footer: `${review.user.login} ${review.state}`,
+          footer: `${review.user.login} ${review.state}・${pr.head.repo.name}`,
           footer_icon: `https://api.adorable.io/avatars/16/${
             review.user.login
           }.png`,
