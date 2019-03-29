@@ -104,20 +104,20 @@ function getLegacyPRObject(pr) {
   };
 }
 
-function getLegacyPRObjectCompact(pr, action = '') {
+function getLegacyPRObjectCompact(pr, user = '', action = '') {
   return {
     color: '#161515',
     title: `${pr.title} (#${pr.number})`,
     title_link: pr.html_url,
     text: prBranch(pr),
-    footer: [pr.user.login + action, pr.head.repo.name].join('・'),
+    footer: [user + action, pr.head.repo.name].join('・'),
     footer_icon: `https://api.adorable.io/avatars/16/${pr.user.login}.png`,
     fallback: 'PR',
   };
 }
 
 const actions = {
-  opened({ pull_request: pr }, { users, mode }) {
+  opened({ pull_request: pr, sender }, { users, mode }) {
     const host = process.env.CDN_UR || process.env.BASE_URI;
     const message = "I've just opened a PR, check it out";
     const image = e.image(
@@ -138,7 +138,7 @@ const actions = {
       username: 'PR Opened',
       icon_url:
         'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_opened.png?alt=media',
-      attachments: [getLegacyPRObjectCompact(pr, ' opened PR')],
+      attachments: [getLegacyPRObjectCompact(pr, sender.login, ' opened PR')],
     };
   },
   closed({ pull_request: pr, sender }, { users, mode }) {
@@ -176,7 +176,9 @@ const actions = {
         icon_url:
           'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_merged.png?alt=media',
         attachments: [
-          omit(getLegacyPRObjectCompact(pr, ' merged PR'), ['text']),
+          omit(getLegacyPRObjectCompact(pr, sender.login, ' merged PR'), [
+            'text',
+          ]),
         ],
       };
     }
@@ -185,7 +187,11 @@ const actions = {
       username: 'PR Closed',
       icon_url:
         'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_closed.png?alt=media',
-      attachments: [omit(getLegacyPRObjectCompact(pr, ' closed PR'), ['text'])],
+      attachments: [
+        omit(getLegacyPRObjectCompact(pr, sender.login, ' closed PR'), [
+          'text',
+        ]),
+      ],
     };
   },
   reopened() {
