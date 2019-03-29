@@ -111,7 +111,7 @@ function getLegacyPRObjectCompact(pr, user = '', action = '') {
     title_link: pr.html_url,
     text: prBranch(pr),
     footer: [user + action, pr.head.repo.name].join('・'),
-    footer_icon: `https://api.adorable.io/avatars/16/${pr.user.login}.png`,
+    footer_icon: `https://api.adorable.io/avatars/16/${user}.png`,
     fallback: 'PR',
   };
 }
