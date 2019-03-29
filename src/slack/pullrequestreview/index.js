@@ -9,11 +9,13 @@ const actions = {
         name: 'Approval',
         image: getImageUrl('approve'),
         color: '#2CBE4E',
+        action: 'approved',
       },
       changes_requested: {
-        name: 'Request Changes',
+        name: 'Request changes',
         image: getImageUrl('reject'),
         color: '#CB2331',
+        action: 'requested changes',
       },
     };
     const stateObj = state[review.state.toLowerCase()];
@@ -28,7 +30,9 @@ const actions = {
           color: stateObj.color,
           title: `${pr.title} (#${pr.number})`,
           title_link: pr.html_url,
-          footer: `${review.user.login} ${review.state}・${pr.head.repo.name}`,
+          footer: `${review.user.login} ${stateObj.action}・${
+            pr.head.repo.name
+          }`,
           footer_icon: `https://api.adorable.io/avatars/16/${
             review.user.login
           }.png`,
