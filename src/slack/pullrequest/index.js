@@ -104,13 +104,13 @@ function getLegacyPRObject(pr) {
   };
 }
 
-function getLegacyPRObjectCompact(pr) {
+function getLegacyPRObjectCompact(pr, action = '') {
   return {
     color: '#161515',
     title: `${pr.title} (#${pr.number})`,
     title_link: pr.html_url,
     text: prBranch(pr),
-    footer: [pr.user.login, pr.head.repo.name].join('・'),
+    footer: [pr.user.login + action, pr.head.repo.name].join('・'),
     footer_icon: `https://api.adorable.io/avatars/16/${pr.user.login}.png`,
     fallback: 'PR',
   };
@@ -138,7 +138,7 @@ const actions = {
       username: 'PR Opened',
       icon_url:
         'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_opened.png?alt=media',
-      attachments: [getLegacyPRObjectCompact(pr)],
+      attachments: [getLegacyPRObjectCompact(pr, ' opened PR')],
     };
   },
   closed({ pull_request: pr, sender }, { users, mode }) {
@@ -170,14 +170,14 @@ const actions = {
       ];
     }
 
-    const attachments = [omit(getLegacyPRObjectCompact(pr), ['text'])];
-
     if (pr.merged) {
       return {
         username: 'PR Merged',
         icon_url:
           'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_merged.png?alt=media',
-        attachments,
+        attachments: [
+          omit(getLegacyPRObjectCompact(pr, ' merged PR'), ['text']),
+        ],
       };
     }
 
@@ -185,7 +185,7 @@ const actions = {
       username: 'PR Closed',
       icon_url:
         'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_closed.png?alt=media',
-      attachments,
+      attachments: [omit(getLegacyPRObjectCompact(pr, ' closed PR'), ['text'])],
     };
   },
   reopened() {
