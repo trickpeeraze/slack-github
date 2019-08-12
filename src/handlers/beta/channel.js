@@ -6,7 +6,7 @@ module.exports = async (req, reply) => {
     reply.code(204);
     return;
   }
-  throwifEventNotsupport(req);
+  throwIfEventNotSupport(req);
 
   const payload = getPayload(req);
   const channel = req.params.channelId;
@@ -34,7 +34,7 @@ function isPing(req) {
   return req.headers['x-github-event'] === 'ping';
 }
 
-function throwifEventNotsupport(req) {
+function throwIfEventNotSupport(req) {
   const event = req.headers['x-github-event'];
 
   if (!slack[event])
