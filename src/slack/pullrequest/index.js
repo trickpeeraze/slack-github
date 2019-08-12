@@ -1,7 +1,7 @@
 const f = require('../components/format');
 const b = require('../components/block');
 const e = require('../components/element');
-const { omit } = require('lodash');
+const omit = require('lodash/omit');
 
 function prTitle({ url, title }) {
   return f.bold(f.link(url, title));
@@ -136,8 +136,8 @@ const actions = {
 
     return {
       username: 'PR Opened',
-      icon_url:
-        'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_opened.png?alt=media',
+      icon_emoji:
+        ':pr_opened:',
       attachments: [getLegacyPRObjectCompact(pr, sender.login, ' opened PR')],
     };
   },
@@ -173,8 +173,8 @@ const actions = {
     if (pr.merged) {
       return {
         username: 'PR Merged',
-        icon_url:
-          'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_merged.png?alt=media',
+        icon_emoji:
+          ':pr_merged:',
         attachments: [
           omit(getLegacyPRObjectCompact(pr, sender.login, ' merged PR'), [
             'text',
@@ -185,8 +185,8 @@ const actions = {
 
     return {
       username: 'PR Closed',
-      icon_url:
-        'https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2Fpr_closed.png?alt=media',
+      icon_emoji:
+        ':pr_closed:',
       attachments: [
         omit(getLegacyPRObjectCompact(pr, sender.login, ' closed PR'), [
           'text',

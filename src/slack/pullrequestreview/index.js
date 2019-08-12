@@ -1,19 +1,19 @@
 const actions = {
   submitted({ review, pull_request: pr }) {
-    const getImageUrl = name =>
-      `https://firebasestorage.googleapis.com/v0/b/temporary-trick.appspot.com/o/images%2F${name}.png?alt=media`;
+    const getIconEmoji = name =>
+      `:${name}:`;
     const state = {
       // we will ignore comment state and go to check on `pull_request_review_comment` instead
       // commented: {},
       approved: {
         name: 'Approval',
-        image: getImageUrl('approve'),
+        image: getIconEmoji('pr_approved'),
         color: '#2CBE4E',
         action: 'approved',
       },
       changes_requested: {
         name: 'Request changes',
-        image: getImageUrl('reject'),
+        image: getIconEmoji('pr_rejected'),
         color: '#CB2331',
         action: 'requested changes',
       },
@@ -24,7 +24,7 @@ const actions = {
 
     return {
       username: `PR ${stateObj.name}`,
-      icon_url: stateObj.image,
+      icon_emoji: stateObj.image,
       attachments: [
         {
           color: stateObj.color,
