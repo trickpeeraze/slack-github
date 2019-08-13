@@ -1,26 +1,22 @@
-const isEmpty = require('lodash/isEmpty');
 const axios = require('axios');
 const slack = require('../slack');
 
 module.exports = async (req, reply) => {
-  throwifEventNotsupport(req);
-  throwifHasNoUser(req);
+  if (isPing(req)) {
+    reply.code(204);
+    return;
+  }
+  throwIfEventNotSupport(req);
 
-  const blocks = getBlocks(req);
+  const payload = getPayload(req);
   const channel = req.params.channelId;
-  const postMessageEndpoint = 'https://slack.com/api/chat.postMessage';
-  const slackUser = req.users.getByGithubId(req.body.sender.login);
+  const ikameshiEndpoint = `http://ikameshi.linecorp.com/webhook/${channel}`;
   const headers = {
-    Authorization: `Bearer ${slackUser.token}`,
     'Content-Type': 'application/json',
   };
 
   try {
-    const res = await axios.post(
-      postMessageEndpoint,
-      { blocks, channel },
-      { headers }
-    );
+    const res = await axios.post(ikameshiEndpoint, payload, { headers });
 
     req.log.info(res.data);
     reply.code(204);
@@ -34,30 +30,25 @@ module.exports = async (req, reply) => {
   }
 };
 
-function throwifHasNoUser(req) {
-  if (isEmpty(req.body.sender)) throw new Error('Could not find the sender.');
-
-  // TODO: support two mode "user" and "bot" in case that
-  //       users don't grant any permissions
-  const slackUser = req.users.getByGithubId(req.body.sender.login);
-  if (!slackUser) throw new Error("Could not find the slack's user.");
+function isPing(req) {
+  return req.headers['x-github-event'] === 'ping';
 }
 
-function throwifEventNotsupport(req) {
+function throwIfEventNotSupport(req) {
   const event = req.headers['x-github-event'];
 
   if (!slack[event])
     throw new Error(`Event "${event}" doesn't currently support.`);
 }
 
-function getBlocks(req) {
+function getPayload(req) {
   const event = req.headers['x-github-event'];
-  const blocks = slack[event](req.body, { users: req.users });
+  const payload = slack[event](req.body);
 
-  if (!blocks)
+  if (!payload)
     throw new Error(
       `Event action "${req.body.action}" doesn't currently support.`
     );
 
-  return blocks;
+  return payload;
 }
