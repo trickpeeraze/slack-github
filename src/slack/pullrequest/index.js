@@ -1,7 +1,9 @@
+const omit = require('lodash/omit');
+const slackifyMarkdown = require('slackify-markdown');
+
 const f = require('../components/format');
 const b = require('../components/block');
 const e = require('../components/element');
-const omit = require('lodash/omit');
 
 function prTitle({ url, title }) {
   return f.bold(f.link(url, title));
@@ -134,11 +136,20 @@ const actions = {
       ];
     }
 
+    const attachments = [getLegacyPRObjectCompact(pr, sender.login, ' opened PR')];
+
+    if (pr.body) {
+      attachments.push({
+        color: '#161515',
+        text: slackifyMarkdown(pr.body),
+      });
+    }
+
     return {
+      attachments,
       username: 'PR Opened',
       icon_emoji:
         ':pr_opened:',
-      attachments: [getLegacyPRObjectCompact(pr, sender.login, ' opened PR')],
     };
   },
   closed({ pull_request: pr, sender }, { users, mode }) {
