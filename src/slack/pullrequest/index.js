@@ -86,27 +86,27 @@ const actions = {
   review_request_removed() {
     return null;
   },
-  labeled({ label, pull_request: pr, review }) {
+  labeled({ label, pull_request: pr, sender }) {
     return {
       username: `${label.name} added`,
       icon_emoji: ':git-tag:',
       attachments: [{
         title: `${pr.title} (#${pr.number})`,
         title_link: pr.html_url,
-        footer: `${review.user.login} tagged・${pr.head.repo.name}`,
-        footer_icon: `https://api.adorable.io/avatars/16/${review.user.login}.png`,
+        footer: `${sender.login} tagged・${pr.head.repo.name}`,
+        footer_icon: `https://api.adorable.io/avatars/16/${sender.login}.png`,
       }],
     };
   },
-  unlabeled({ label, pull_request: pr, review }) {
+  unlabeled({ label, pull_request: pr, sender }) {
     return {
       username: `${label.name} removed`,
       icon_emoji: ':git-tag:',
       attachments: [{
         title: `${pr.title} (#${pr.number})`,
         title_link: pr.html_url,
-        footer: `${review.user.login} tagged・${pr.head.repo.name}`,
-        footer_icon: `https://api.adorable.io/avatars/16/${review.user.login}.png`,
+        footer: `${sender.login} tagged・${pr.head.repo.name}`,
+        footer_icon: `https://api.adorable.io/avatars/16/${sender.login}.png`,
       }],
     };
   },
