@@ -88,7 +88,7 @@ const actions = {
   },
   labeled({ label, pull_request: pr, sender }) {
     return {
-      username: `${label.name} added`,
+      username: `[${label.name}] added`,
       icon_emoji: ':git-tag:',
       attachments: [{
         title: `${pr.title} (#${pr.number})`,
@@ -100,7 +100,7 @@ const actions = {
   },
   unlabeled({ label, pull_request: pr, sender }) {
     return {
-      username: `${label.name} removed`,
+      username: `[${label.name}] removed`,
       icon_emoji: ':git-tag:',
       attachments: [{
         title: `${pr.title} (#${pr.number})`,
