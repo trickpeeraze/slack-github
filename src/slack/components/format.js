@@ -5,3 +5,4 @@ exports.italic = wrap('_');
 exports.code = wrap('`');
 exports.link = (url, title) => wrap('<', '>')(url + '|' + (title || url));
 exports.mention = id => wrap('<', '>')(`@${id}`);
+exports.emoji = name => wrap(':')(name);

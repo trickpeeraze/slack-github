@@ -1,26 +1,26 @@
 const slackifyMarkdown = require('slackify-markdown');
+const { emoji } = require('../components/format');
+
+const SUBMITTED_STATE = {
+  // we will ignore comment state and go to check on `pull_request_review_comment` instead
+  // commented: {},
+  approved: {
+    name: 'Approval',
+    image: emoji('pr_approved'),
+    color: '#2CBE4E',
+    action: 'approved',
+  },
+  changes_requested: {
+    name: 'Request changes',
+    image: emoji('pr_rejected'),
+    color: '#CB2331',
+    action: 'requested changes',
+  },
+};
 
 const actions = {
   submitted({ review, pull_request: pr }) {
-    const getIconEmoji = name =>
-      `:${name}:`;
-    const state = {
-      // we will ignore comment state and go to check on `pull_request_review_comment` instead
-      // commented: {},
-      approved: {
-        name: 'Approval',
-        image: getIconEmoji('pr_approved'),
-        color: '#2CBE4E',
-        action: 'approved',
-      },
-      changes_requested: {
-        name: 'Request changes',
-        image: getIconEmoji('pr_rejected'),
-        color: '#CB2331',
-        action: 'requested changes',
-      },
-    };
-    const stateObj = state[review.state.toLowerCase()];
+    const stateObj = SUBMITTED_STATE[review.state.toLowerCase()];
 
     if (!stateObj) return null;
 
@@ -40,7 +40,7 @@ const actions = {
 
     if (review.body) {
       attachments.push({
-        text: `:talk: ${slackifyMarkdown(review.body)}`,
+        text: `${emoji('talk')} ${slackifyMarkdown(review.body)}`,
       });
     }
 
