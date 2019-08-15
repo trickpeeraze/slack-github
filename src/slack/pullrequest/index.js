@@ -31,7 +31,7 @@ const actions = {
 
     if (pr.body) {
       attachments.push({
-        color: '#161515',
+        author_name: ':talk: Description',
         text: slackifyMarkdown(pr.body),
       });
     }
@@ -39,16 +39,14 @@ const actions = {
     return {
       attachments,
       username: 'PR Opened',
-      icon_emoji:
-        ':pr_opened:',
+      icon_emoji: ':pr_opened:',
     };
   },
   closed({ pull_request: pr, sender }) {
     if (pr.merged) {
       return {
         username: 'PR Merged',
-        icon_emoji:
-          ':pr_merged:',
+        icon_emoji: ':pr_merged:',
         attachments: [
           omit(getLegacyPRObjectCompact(pr, sender.login, ' merged PR'), [
             'text',
@@ -59,8 +57,7 @@ const actions = {
 
     return {
       username: 'PR Closed',
-      icon_emoji:
-        ':pr_closed:',
+      icon_emoji: ':pr_closed:',
       attachments: [
         omit(getLegacyPRObjectCompact(pr, sender.login, ' closed PR'), [
           'text',
