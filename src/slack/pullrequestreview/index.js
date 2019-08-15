@@ -40,7 +40,6 @@ const actions = {
 
     if (review.body) {
       attachments.push({
-        color: '#F8F8F8',
         text: `:talk: ${slackifyMarkdown(review.body)}`,
       });
     }
